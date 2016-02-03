@@ -1,5 +1,8 @@
 # TensorFlow Tutorials
 
+Install tensorflow using the instructions here:
+https://github.com/tensorflow/tensorflow
+https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md
 
 ## 1-basics.py
 
