@@ -1,4 +1,4 @@
-"""Tutorial on how to build a residual network.
+"""In progress.
 
 Parag K. Mital, Jan 2016.
 """
