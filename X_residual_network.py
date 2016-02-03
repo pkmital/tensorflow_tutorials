@@ -109,7 +109,7 @@ x = tf.placeholder(tf.float32, [None, 784])
 y = tf.placeholder(tf.float32, [None, 10])
 
 rn = residual_network(x, 10)
-y_pred = rn['y']
+y_pred = rn
 
 # %% Define loss/eval/training functions
 cross_entropy = -tf.reduce_sum(y * tf.log(y_pred))
