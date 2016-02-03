@@ -1,14 +1,20 @@
-"""Connections for TensorFlow.
-Parag K. Mital, Jan 2016."""
+"""Useful connections for TensorFlow.
+Parag K. Mital, Jan 2016.
+"""
 
 import tensorflow as tf
+from batch_norm import batch_norm as bn
 
 
 def conv2d(x, n_filters,
            k_h=5, k_w=5,
            stride_h=2, stride_w=2,
            stddev=0.02,
-           name="conv2d"):
+           batch_norm=False,
+           activation=lambda x: x,
+           bias=True,
+           padding='SAME',
+           name="Conv2D"):
     """2D Convolution with options for kernel size, stride, and init deviation.
 
     Parameters
@@ -27,6 +33,12 @@ def conv2d(x, n_filters,
         Stride in cols.
     stddev : float, optional
         Initialization's standard deviation.
+    activation : arguments, optional
+        Function which applies a nonlinearity
+    batch_norm : bool, optional
+        Whether or not to apply batch normalization
+    padding : str, optional
+        'SAME' or 'VALID'
     name : str, optional
         Variable scope to use.
 
@@ -40,11 +52,20 @@ def conv2d(x, n_filters,
             'w', [k_h, k_w, x.get_shape()[-1], n_filters],
             initializer=tf.truncated_normal_initializer(stddev=stddev))
         conv = tf.nn.conv2d(
-            x, w, strides=[1, stride_h, stride_w, 1], padding='SAME')
+            x, w, strides=[1, stride_h, stride_w, 1], padding=padding)
+        if bias:
+            b = tf.get_variable(
+                'b', [n_filters],
+                initializer=tf.truncated_normal_initializer(stddev=stddev))
+            conv = conv + b
+        if batch_norm:
+            norm = bn(-1)
+            conv = norm(conv)
         return conv
 
 
-def linear(x, n_units, scope=None, stddev=0.02):
+def linear(x, n_units, scope=None, stddev=0.02,
+           activation=lambda x: x):
     """Fully-connected network.
 
     Parameters
@@ -57,6 +78,8 @@ def linear(x, n_units, scope=None, stddev=0.02):
         Variable scope to use.
     stddev : float, optional
         Initialization's standard deviation.
+    activation : arguments, optional
+        Function which applies a nonlinearity
 
     Returns
     -------
@@ -68,4 +91,4 @@ def linear(x, n_units, scope=None, stddev=0.02):
     with tf.variable_scope(scope or "Linear"):
         matrix = tf.get_variable("Matrix", [shape[1], n_units], tf.float32,
                                  tf.random_normal_initializer(stddev=stddev))
-        return tf.matmul(x, matrix)
+        return activation(tf.matmul(x, matrix))
