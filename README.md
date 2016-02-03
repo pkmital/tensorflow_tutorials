@@ -40,6 +40,10 @@ Building a deep denoising autoencoder which corrupts the input.
 
 Building a deep convolutional autoencoder.
 
+## 10-residual_network.py
+
+Building a deep residual network.
+
 ## ... More to come ...
 
 # Author
