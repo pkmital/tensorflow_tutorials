@@ -30,7 +30,21 @@ def autoencoder(dimensions=[784, 512, 256, 64]):
     """
     # input to the network
     x = tf.placeholder(tf.float32, [None, dimensions[0]], name='x')
-    current_input = corrupt(x)
+
+    # Probability that we will corrupt input.
+    # This is the essence of the denoising autoencoder, and is pretty
+    # basic.  We'll feed forward a noisy input, allowing our network
+    # to generalize better, possibly, to occlusions of what we're
+    # really interested in.  But to measure accuracy, we'll still
+    # enforce a training signal which measures the original image's
+    # reconstruction cost.
+    #
+    # We'll change this to 1 during training
+    # but when we're ready for testing/production ready environments,
+    # we'll put it back to 0.
+    corrupt_prob = tf.placeholder(tf.float32, [1])
+    current_input = corrupt(x) * corrupt_prob + x * (1 - corrupt_prob)
+
     # Build the encoder
     encoder = []
     for layer_i, n_output in enumerate(dimensions[1:]):
@@ -56,9 +70,13 @@ def autoencoder(dimensions=[784, 512, 256, 64]):
     y = current_input
     # cost function measures pixel-wise difference
     cost = tf.sqrt(tf.reduce_mean(tf.square(y - x)))
-    return {'x': x, 'z': z, 'y': y, 'cost': cost}
+    return {'x': x, 'z': z, 'y': y,
+            'corrupt_prob': corrupt_prob,
+            'cost': cost}
 
 # %%
+
+
 def test_mnist():
     import tensorflow as tf
     import tensorflow.examples.tutorials.mnist.input_data as input_data
@@ -87,15 +105,18 @@ def test_mnist():
         for batch_i in range(mnist.train.num_examples // batch_size):
             batch_xs, _ = mnist.train.next_batch(batch_size)
             train = np.array([img - mean_img for img in batch_xs])
-            sess.run(optimizer, feed_dict={ae['x']: train})
-        print(epoch_i, sess.run(ae['cost'], feed_dict={ae['x']: train}))
+            sess.run(optimizer, feed_dict={
+                ae['x']: train, ae['corrupt_prob']: [1.0]})
+        print(epoch_i, sess.run(ae['cost'], feed_dict={
+            ae['x']: train, ae['corrupt_prob']: [1.0]}))
 
     # %%
     # Plot example reconstructions
     n_examples = 15
     test_xs, _ = mnist.test.next_batch(n_examples)
     test_xs_norm = np.array([img - mean_img for img in test_xs])
-    recon = sess.run(ae['y'], feed_dict={ae['x']: test_xs_norm})
+    recon = sess.run(ae['y'], feed_dict={
+        ae['x']: test_xs_norm, ae['corrupt_prob']: [0.0]})
     fig, axs = plt.subplots(2, n_examples, figsize=(10, 2))
     for example_i in range(n_examples):
         axs[0][example_i].imshow(
