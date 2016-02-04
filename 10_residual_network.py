@@ -11,13 +11,13 @@ from math import sqrt
 
 # %%
 def residual_network(x, n_outputs,
-                     activation=tf.nn.relu, debug=False):
+                     activation=tf.nn.relu):
     """Builds a residual network.
 
     Parameters
     ----------
-    input_shape : list
-        Input dimensions of tensor
+    x : Placeholder
+        Input to the network
     n_outputs : TYPE
         Number of outputs of final softmax
     activation : Attribute, optional
@@ -25,8 +25,14 @@ def residual_network(x, n_outputs,
 
     Returns
     -------
-    name : TYPE
+    net : Tensor
         Description
+
+    Raises
+    ------
+    ValueError
+        If a 2D Tensor is input, the Tensor must be square or else
+        the network can't be converted to a 4D Tensor.
     """
     # %%
     LayerBlock = namedtuple(
@@ -102,38 +108,52 @@ def residual_network(x, n_outputs,
     return net
 
 
-import tensorflow.examples.tutorials.mnist.input_data as input_data
+def test_mnist():
+    """Test the resnet on MNIST."""
+    import tensorflow.examples.tutorials.mnist.input_data as input_data
 
-mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
-x = tf.placeholder(tf.float32, [None, 784])
-y = tf.placeholder(tf.float32, [None, 10])
+    mnist = input_data.read_data_sets('MNIST_data/', one_hot=True)
+    x = tf.placeholder(tf.float32, [None, 784])
+    y = tf.placeholder(tf.float32, [None, 10])
+    y_pred = residual_network(x, 10)
 
-rn = residual_network(x, 10)
-y_pred = rn
+    # %% Define loss/eval/training functions
+    cross_entropy = -tf.reduce_sum(y * tf.log(y_pred))
+    optimizer = tf.train.AdamOptimizer().minimize(cross_entropy)
 
-# %% Define loss/eval/training functions
-cross_entropy = -tf.reduce_sum(y * tf.log(y_pred))
-optimizer = tf.train.AdamOptimizer().minimize(cross_entropy)
+    # %% Monitor accuracy
+    correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
 
-# %% Monitor accuracy
-correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+    # %% We now create a new session to actually perform the initialization the
+    # variables:
+    sess = tf.Session()
+    sess.run(tf.initialize_all_variables())
 
-# %% We now create a new session to actually perform the initialization the
-# variables:
-sess = tf.Session()
-sess.run(tf.initialize_all_variables())
+    # %% We'll train in minibatches and report accuracy:
+    batch_size = 50
+    n_epochs = 5
+    for epoch_i in range(n_epochs):
+        # Training
+        train_accuracy = 0
+        for batch_i in range(mnist.train.num_examples // batch_size):
+            batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+            train_accuracy += sess.run([optimizer, accuracy], feed_dict={
+                x: batch_xs, y: batch_ys})[1]
+        train_accuracy /= (mnist.train.num_examples // batch_size)
 
-# %% We'll train in minibatches and report accuracy:
-batch_size = 100
-n_epochs = 5
-for epoch_i in range(n_epochs):
-    for batch_i in range(mnist.train.num_examples // batch_size):
-        batch_xs, batch_ys = mnist.train.next_batch(batch_size)
-        sess.run(optimizer, feed_dict={
-            x: batch_xs, y: batch_ys})
-    print(sess.run(accuracy,
-                   feed_dict={
-                       x: mnist.validation.images,
-                       y: mnist.validation.labels
-                   }))
+        # Validation
+        valid_accuracy = 0
+        for batch_i in range(mnist.validation.num_examples // batch_size):
+            valid_accuracy += sess.run(accuracy,
+                                       feed_dict={
+                                           x: mnist.validation.images,
+                                           y: mnist.validation.labels
+                                       })
+        valid_accuracy /= (mnist.validation.num_examples // batch_size)
+        print('epoch:', epoch_i, ', train:',
+              train_accuracy, ', valid:', valid_accuracy)
+
+
+if __name__ == '__main__':
+    test_mnist()
