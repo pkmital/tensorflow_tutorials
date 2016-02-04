@@ -145,10 +145,11 @@ def test_mnist():
         # Validation
         valid_accuracy = 0
         for batch_i in range(mnist.validation.num_examples // batch_size):
+            batch_xs, batch_ys = mnist.validation.next_batch(batch_size)
             valid_accuracy += sess.run(accuracy,
                                        feed_dict={
-                                           x: mnist.validation.images,
-                                           y: mnist.validation.labels
+                                           x: batch_xs,
+                                           y: batch_ys
                                        })
         valid_accuracy /= (mnist.validation.num_examples // batch_size)
         print('epoch:', epoch_i, ', train:',
