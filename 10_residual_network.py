@@ -98,9 +98,15 @@ def residual_network(x, n_outputs,
             pass
 
     # %%
+    net = tf.nn.avg_pool(net,
+                         ksize=[1, net.get_shape().as_list()[1],
+                                net.get_shape().as_list()[2], 1],
+                         strides=[1, 1, 1, 1], padding='SAME')
     net = tf.reshape(
-        tf.reduce_mean(net, 3),
-        [-1, net.get_shape().as_list()[1] * net.get_shape().as_list()[2]])
+        net,
+        [-1, net.get_shape().as_list()[1] *
+         net.get_shape().as_list()[2] *
+         net.get_shape().as_list()[3]])
 
     net = linear(net, n_outputs, activation=tf.nn.softmax)
 
