@@ -101,7 +101,7 @@ def residual_network(x, n_outputs,
     net = tf.nn.avg_pool(net,
                          ksize=[1, net.get_shape().as_list()[1],
                                 net.get_shape().as_list()[2], 1],
-                         strides=[1, 1, 1, 1], padding='SAME')
+                         strides=[1, 1, 1, 1], padding='VALID')
     net = tf.reshape(
         net,
         [-1, net.get_shape().as_list()[1] *
