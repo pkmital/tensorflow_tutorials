@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 n_values = 32
 x = tf.linspace(-3.0, 3.0, n_values)
 
-# %% Construct a tf.Session to execut the graph.
+# %% Construct a tf.Session to execute the graph.
 sess = tf.Session()
 result = sess.run(x)
 
