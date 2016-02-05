@@ -1,11 +1,5 @@
 # TensorFlow Tutorials
 
-## Installation Guides
-
-* Official TensorFlow installation instructions: [README](https://github.com/tensorflow/tensorflow) and [OS-specific
-setup](https://github.com/tensorflow/tensorFlow/blob/master/tensorflow/g3doc/get_started/os_setup.md)
-* [Installation on EC2 GPU Instances](http://eatcodeplay.com/installing-gpu-enabled-tensorflow-with-python-3-4-in-ec2/)
-
 ## 1-basics.py
 
 Basics of getting setup w/ tensorflow and graph computation.
@@ -47,6 +41,18 @@ Building a deep convolutional autoencoder.
 Building a deep residual network.
 
 ## ... More to come ...
+
+# Installation Guides
+
+* [TensorFlow Installation](https://github.com/tensorflow/tensorflow)
+* [OS specific setup](https://github.com/tensorflow/tensorFlow/blob/master/tensorflow/g3doc/get_started/os_setup.md)
+* [Installation on EC2 GPU Instances](http://eatcodeplay.com/installing-gpu-enabled-tensorflow-with-python-3-4-in-ec2/)
+
+# Resources
+
+* [Tensorflow Tutorials](https://www.tensorflow.org/versions/0.6.0/tutorials/index.html)
+* [Tensorflow API](https://www.tensorflow.org/versions/0.6.0/api_docs/python/index.html)
+* [Tensorflow Google Groups](groups.google.com/a/tensorflow.org/d/forum/discuss)
 
 # Author
 
