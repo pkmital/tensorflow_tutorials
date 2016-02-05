@@ -1,8 +1,10 @@
 # TensorFlow Tutorials
 
-Install tensorflow using the instructions here:
-https://github.com/tensorflow/tensorflow
-https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md
+## Installation Guides
+
+* Official TensorFlow installation instructions: [README](https://github.com/tensorflow/tensorflow) and [OS-specific
+setup](https://github.com/tensorflow/tensorFlow/blob/master/tensorflow/g3doc/get_started/os_setup.md)
+* [Installation on EC2 GPU Instances](http://eatcodeplay.com/installing-gpu-enabled-tensorflow-with-python-3-4-in-ec2/)
 
 ## 1-basics.py
 
