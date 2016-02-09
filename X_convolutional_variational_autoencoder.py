@@ -4,17 +4,19 @@ Parag K. Mital, Jan 2016
 """
 import tensorflow as tf
 import numpy as np
-from utils import weight_variable, bias_variable
+from utils import weight_variable, bias_variable, montage
+from time import sleep
+import matplotlib.pyplot as plt
 
 
 # %%
 def VAE(input_shape=[None, 784],
-        n_filters=[1, 64],
-        filter_sizes=[3, 3],
+        n_filters=[784, 512],
+        filter_sizes=[],
         n_hidden=256,
-        n_code=20,
+        n_code=2,
         activation=tf.nn.relu,
-        convolutional=True,
+        convolutional=False,
         debug=False):
     # %%
     # Input placeholder
@@ -216,7 +218,26 @@ def VAE(input_shape=[None, 784],
         1)
     loss = tf.reduce_mean(log_px_given_z + kl_div)
 
-    return {'cost': loss, 'x': x, 'z': z, 'y': y}
+    return {'cost': loss, 'x': x, 'z': z, 'y': y, 'filters': encoder}
+
+
+def plot_reconstructions(xs, ys, fig=None, axs=None):
+    # %%
+    # Plot example reconstructions
+    if fig is None or axs is None:
+        fig, axs = plt.subplots(2, len(ys), figsize=(10, 2))
+    for example_i in range(len(ys)):
+        axs[0][example_i].imshow(
+            np.reshape(xs[example_i, :], (28, 28)),
+            cmap='gray')
+        axs[1][example_i].imshow(
+            np.reshape(
+                np.reshape(ys[example_i, ...], (784,)),
+                (28, 28)),
+            cmap='gray')
+    fig.show()
+    fig.canvas.draw()
+    fig.canvas.flush_events()
 
 
 # %%
@@ -252,6 +273,7 @@ def test_mnist():
     # Fit all training data
     batch_size = 100
     n_epochs = 10
+    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
     for epoch_i in range(n_epochs):
         print('--- Epoch', epoch_i)
         train_cost = 0
@@ -259,6 +281,18 @@ def test_mnist():
             batch_xs, _ = mnist.train.next_batch(batch_size)
             train_cost += sess.run([ae['cost'], optimizer],
                                    feed_dict={ae['x']: batch_xs})[0]
+
+            if batch_i % 5 == 0:
+                xs, ys = mnist.test.images, mnist.test.labels
+                zs = sess.run(ae['z'], feed_dict={ae['x']: xs})
+                plt.cla()
+                ax.scatter(zs[:, 0], zs[:, 1], c=np.argmax(ys, 1), alpha=0.5)
+                ax.set_xlim([-3, 3])
+                ax.set_ylim([-3, 3])
+                fig.show()
+                fig.canvas.draw()
+                fig.canvas.flush_events()
+
         print('Train cost:', train_cost /
               (mnist.train.num_examples // batch_size))
 
@@ -270,26 +304,7 @@ def test_mnist():
         print('Validation cost:', valid_cost /
               (mnist.validation.num_examples // batch_size))
 
-    # %%
-    # Plot example reconstructions
-    n_examples = 12
-    test_xs, _ = mnist.test.next_batch(n_examples)
-    recon = sess.run(ae['y'], feed_dict={ae['x']: test_xs})
-    print(recon.shape)
-    fig, axs = plt.subplots(2, n_examples, figsize=(10, 2))
-    for example_i in range(n_examples):
-        axs[0][example_i].imshow(
-            np.reshape(test_xs[example_i, :], (28, 28)),
-            cmap='gray')
-        axs[1][example_i].imshow(
-            np.reshape(
-                np.reshape(recon[example_i, ...], (784,)),
-                (28, 28)),
-            cmap='gray')
-    fig.show()
-    plt.draw()
-    plt.waitforbuttonpress()
-
+    
 
 if __name__ == '__main__':
     test_mnist()
