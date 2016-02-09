@@ -1,29 +1,20 @@
-"""In progress.
+"""Convolutional variational autoencoder.
 
 Parag K. Mital, Jan 2016
 """
 import tensorflow as tf
-import math
 import numpy as np
-from utils import corrupt, weight_variable, bias_variable
-
-
-def normal2(x, mean, logvar):
-    return (c -
-            logvar / 2.0 -
-            tf.pow((x - mean), 2.0) /
-            (2.0 * tf.exp(logvar)))
+from utils import weight_variable, bias_variable
 
 
 # %%
 def VAE(input_shape=[None, 784],
-        n_filters=[],
-        filter_sizes=[],
-        n_hidden=512,
-        n_code=64,
+        n_filters=[1, 64],
+        filter_sizes=[3, 3],
+        n_hidden=256,
+        n_code=20,
         activation=tf.nn.relu,
-        denoising=False,
-        convolutional=False,
+        convolutional=True,
         debug=False):
     # %%
     # Input placeholder
@@ -34,24 +25,17 @@ def VAE(input_shape=[None, 784],
         x = tf.placeholder(tf.float32, input_shape)
 
     # %%
-    # Optionally apply denoising autoencoder
-    if denoising:
-        x_noise = corrupt(x)
-    else:
-        x_noise = x
-
-    # %%
     # ensure 2-d is converted to square tensor.
     if convolutional:
         if len(x.get_shape()) == 2:
-            x_dim = np.sqrt(x_noise.get_shape().as_list()[1])
+            x_dim = np.sqrt(x.get_shape().as_list()[1])
             if x_dim != int(x_dim):
                 raise ValueError('Unsupported input dimensions')
             x_dim = int(x_dim)
             x_tensor = tf.reshape(
-                x_noise, [-1, x_dim, x_dim, 1])
-        elif len(x_noise.get_shape()) == 4:
-            x_tensor = x_noise
+                x, [-1, x_dim, x_dim, 1])
+        elif len(x.get_shape()) == 4:
+            x_tensor = x
         else:
             raise ValueError('Unsupported input dimensions')
     else:
@@ -60,9 +44,11 @@ def VAE(input_shape=[None, 784],
 
     print('* Input')
     print('X:', current_input.get_shape().as_list())
+
     # %%
     # Build the encoder
     shapes = []
+    encoder = []
     print('* Encoder')
     for layer_i, n_input in enumerate(n_filters[:-1]):
         n_output = n_filters[layer_i + 1]
@@ -73,6 +59,7 @@ def VAE(input_shape=[None, 784],
                 filter_sizes[layer_i],
                 filter_sizes[layer_i],
                 n_input, n_output])
+            encoder.append(W)
             b = bias_variable([n_output])
             output = activation(
                 tf.add(tf.nn.conv2d(
@@ -82,6 +69,7 @@ def VAE(input_shape=[None, 784],
             W = weight_variable([n_input, n_output])
             b = bias_variable([n_output])
             output = activation(tf.matmul(current_input, W) + b)
+
         print('in:', current_input.get_shape().as_list(),
               'W:', W.get_shape().as_list(),
               'b:', b.get_shape().as_list(),
@@ -93,11 +81,9 @@ def VAE(input_shape=[None, 784],
         # %%
         # Flatten and build latent layer as means and standard deviations
         size = (dims[1] * dims[2] * dims[3])
-        if debug:
-            flattened = tf.reshape(current_input, [dims[0], size])
-        else:
-            flattened = tf.reshape(current_input,
-                                   tf.pack([tf.shape(x)[0], size]))
+        flattened = tf.reshape(current_input, [dims[0], size]
+            if debug else tf.pack([tf.shape(x)[0], size]))
+
     else:
         size = dims[1]
         flattened = current_input
@@ -109,7 +95,8 @@ def VAE(input_shape=[None, 784],
     print('* FC Layer')
     W_fc = weight_variable([size, n_hidden])
     b_fc = bias_variable([n_hidden])
-    h = tf.nn.tanh(tf.matmul(flattened, W_fc) + b_fc)
+    h = activation(tf.matmul(flattened, W_fc) + b_fc)
+
     print('in:', current_input.get_shape().as_list(),
           'W_fc:', W_fc.get_shape().as_list(),
           'b_fc:', b_fc.get_shape().as_list(),
@@ -122,16 +109,17 @@ def VAE(input_shape=[None, 784],
     W_sigma = weight_variable([n_hidden, n_code])
     b_sigma = bias_variable([n_code])
 
-    mu = tf.matmul(h, W_mu) + b_mu
-    log_sigma = tf.mul(0.5, tf.matmul(h, W_sigma) + b_sigma)
+    z_mu = tf.matmul(h, W_mu) + b_mu
+    z_log_sigma = 0.5 * tf.matmul(h, W_sigma) + b_sigma
+
     print('in:', h.get_shape().as_list(),
           'W_mu:', W_mu.get_shape().as_list(),
           'b_mu:', b_mu.get_shape().as_list(),
-          'mu:', mu.get_shape().as_list())
+          'mu:', z_mu.get_shape().as_list())
     print('in:', h.get_shape().as_list(),
           'W_sigma:', W_sigma.get_shape().as_list(),
           'b_sigma:', b_sigma.get_shape().as_list(),
-          'log_sigma:', log_sigma.get_shape().as_list())
+          'log_sigma:', z_log_sigma.get_shape().as_list())
     # %%
     # Sample from noise distribution p(eps) ~ N(0, 1)
     if debug:
@@ -140,16 +128,18 @@ def VAE(input_shape=[None, 784],
     else:
         epsilon = tf.random_normal(
             tf.pack([tf.shape(x)[0], n_code]))
-    print('epsilon:', epsilon.get_shape().as_list())
 
     # Sample from posterior
-    z = mu + tf.mul(epsilon, tf.exp(log_sigma))
+    z = z_mu + tf.mul(epsilon, tf.exp(z_log_sigma))
+
     print('z:', z.get_shape().as_list())
 
     print('* Decoder')
+
     W_dec = weight_variable([n_code, n_hidden])
     b_dec = bias_variable([n_hidden])
-    h_dec = tf.nn.relu(tf.matmul(z, W_dec) + b_dec)
+    h_dec = activation(tf.matmul(z, W_dec) + b_dec)
+
     print('in:', z.get_shape().as_list(),
           'W_dec:', W_dec.get_shape().as_list(),
           'b_dec:', b_dec.get_shape().as_list(),
@@ -157,55 +147,44 @@ def VAE(input_shape=[None, 784],
 
     W_fc_t = weight_variable([n_hidden, size])
     b_fc_t = bias_variable([size])
-    h_fc_dec = tf.nn.relu(tf.matmul(h_dec, W_fc_t) + b_fc_t)
+    h_fc_dec = activation(tf.matmul(h_dec, W_fc_t) + b_fc_t)
+
     print('in:', h_dec.get_shape().as_list(),
           'W_fc_t:', W_fc_t.get_shape().as_list(),
           'b_fc_t:', b_fc_t.get_shape().as_list(),
           'h_fc_dec:', h_fc_dec.get_shape().as_list())
-
     if convolutional:
-        if debug:
-            h_tensor = tf.reshape(
-                h_fc_dec, [dims[0], dims[1], dims[2], dims[3]])
-        else:
-            h_tensor = tf.reshape(
-                h_fc_dec, tf.pack([tf.shape(x)[0], dims[1], dims[2], dims[3]]))
+        h_tensor = tf.reshape(
+            h_fc_dec, [dims[0], dims[1], dims[2], dims[3]] if debug
+            else tf.pack([tf.shape(x)[0], dims[1], dims[2], dims[3]]))
     else:
         h_tensor = h_fc_dec
 
+    encoder.reverse()
     shapes.reverse()
     n_filters.reverse()
 
     print('* Reshape')
     print(h_fc_dec.get_shape().as_list(),
           '->', h_tensor.get_shape().as_list())
-
-    ## %%
-    ## Decoding layers
+    # %%
+    # Decoding layers
     current_input = h_tensor
     for layer_i, n_output in enumerate(n_filters[:-1][::-1]):
         n_input = n_filters[layer_i]
         n_output = n_filters[layer_i + 1]
+
+        print(n_input, n_output)
         shape = shapes[layer_i]
         if convolutional:
-            W = weight_variable([
-                    filter_sizes[layer_i],
-                    filter_sizes[layer_i],
-                    n_output, n_input])
             b = bias_variable([n_output])
-            if debug:
-                output = activation(tf.add(
-                    tf.nn.deconv2d(
-                        current_input, W,
-                        shape,
-                        strides=[1, 2, 2, 1], padding='SAME'), b))
-            else:
-                output = activation(tf.add(
-                    tf.nn.deconv2d(
-                        current_input, W,
-                        tf.pack(
-                            [tf.shape(x)[0], shape[1], shape[2], shape[3]]),
-                        strides=[1, 2, 2, 1], padding='SAME'), b))
+            output = activation(tf.add(
+                tf.nn.deconv2d(
+                    current_input, encoder[layer_i],
+                    shape if debug else
+                    tf.pack(
+                        [tf.shape(x)[0], shape[1], shape[2], shape[3]]),
+                    strides=[1, 2, 2, 1], padding='SAME'), b))
         else:
             W = weight_variable([n_input, n_output])
             b = bias_variable([n_output])
@@ -216,28 +195,26 @@ def VAE(input_shape=[None, 784],
               'out:', output.get_shape().as_list())
         current_input = output
 
-    # %%
-    # Now have the reconstruction through the network
-    y_tensor = current_input
-    y = tf.reshape(y_tensor, tf.pack([tf.shape(x)[0], input_shape[1]]))
-
-    print('* Output')
-    print('Y:', y_tensor.get_shape().as_list())
+    dec_flat = tf.reshape(
+        current_input, tf.pack([tf.shape(x)[0], input_shape[1]]))
 
     # %%
-    # Log Prior: D_KL(q(z|x)||p(z))
-    # Equation 10
-    prior_loss = 0.5 * tf.reduce_sum(
-        1.0 + 2.0 * log_sigma - tf.pow(mu, 2.0) - tf.exp(2.0 * log_sigma))
+    # An extra fc layer and nonlinearity
+    W_fc_final = weight_variable([input_shape[1], input_shape[1]])
+    b_fc_final = bias_variable([input_shape[1]])
+    y = tf.nn.sigmoid(tf.matmul(dec_flat, W_fc_final) + b_fc_final)
 
-    # Reconstruction Cost
-    recon_loss = tf.reduce_sum(tf.abs(y_tensor - x_tensor))
+    # p(x|z)
+    log_px_given_z = -tf.reduce_sum(
+        x * tf.log(y + 1e-10) +
+        (1 - x) * tf.log(1 - y + 1e-10), 1)
 
-    # Total cost
-    loss = recon_loss - prior_loss
-
-    # log_px_given_z = normal2(x, mu, log_sigma)
-    # loss = (log_pz + log_px_given_z - log_qz_given_x).sum()
+    # d_kl(q(z|x)||p(z))
+    # Appendix B: 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+    kl_div = -0.5 * tf.reduce_sum(
+        1.0 + 2.0 * z_log_sigma - tf.square(z_mu) - tf.exp(2.0 * z_log_sigma),
+        1)
+    loss = tf.reduce_mean(log_px_given_z + kl_div)
 
     return {'cost': loss, 'x': x, 'z': z, 'y': y}
 
@@ -259,12 +236,12 @@ def test_mnist():
     # %%
     # load MNIST as before
     mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
-    mean_img = np.mean(mnist.train.images, axis=0)
     ae = VAE()
 
     # %%
-    learning_rate = 0.005
-    optimizer = tf.train.AdamOptimizer(learning_rate).minimize(ae['cost'])
+    learning_rate = 0.02
+    optimizer = tf.train.AdamOptimizer(
+        learning_rate=learning_rate).minimize(ae['cost'])
 
     # %%
     # We create a session to use the graph
@@ -274,30 +251,45 @@ def test_mnist():
     # %%
     # Fit all training data
     batch_size = 100
-    n_epochs = 100
+    n_epochs = 10
     for epoch_i in range(n_epochs):
+        print('--- Epoch', epoch_i)
+        train_cost = 0
         for batch_i in range(mnist.train.num_examples // batch_size):
             batch_xs, _ = mnist.train.next_batch(batch_size)
-            train = np.array([img - mean_img for img in batch_xs])
-        print(epoch_i,
-              sess.run([ae['cost'], optimizer],
-                       feed_dict={ae['x']: train})[0])
+            train_cost += sess.run([ae['cost'], optimizer],
+                                   feed_dict={ae['x']: batch_xs})[0]
+        print('Train cost:', train_cost /
+              (mnist.train.num_examples // batch_size))
+
+        valid_cost = 0
+        for batch_i in range(mnist.validation.num_examples // batch_size):
+            batch_xs, _ = mnist.validation.next_batch(batch_size)
+            valid_cost += sess.run([ae['cost']],
+                                   feed_dict={ae['x']: batch_xs})[0]
+        print('Validation cost:', valid_cost /
+              (mnist.validation.num_examples // batch_size))
 
     # %%
     # Plot example reconstructions
     n_examples = 12
     test_xs, _ = mnist.test.next_batch(n_examples)
-    test_xs_norm = np.array([img - mean_img for img in test_xs])
-    recon = sess.run(ae['y'], feed_dict={ae['x']: test_xs_norm})
+    recon = sess.run(ae['y'], feed_dict={ae['x']: test_xs})
     print(recon.shape)
     fig, axs = plt.subplots(2, n_examples, figsize=(10, 2))
     for example_i in range(n_examples):
         axs[0][example_i].imshow(
-            np.reshape(test_xs[example_i, :], (28, 28)))
+            np.reshape(test_xs[example_i, :], (28, 28)),
+            cmap='gray')
         axs[1][example_i].imshow(
             np.reshape(
-                np.reshape(recon[example_i, ...], (784,)) + mean_img,
-                (28, 28)))
+                np.reshape(recon[example_i, ...], (784,)),
+                (28, 28)),
+            cmap='gray')
     fig.show()
     plt.draw()
     plt.waitforbuttonpress()
+
+
+if __name__ == '__main__':
+    test_mnist()
