@@ -50,9 +50,9 @@ Building a deep residual network.
 
 # Resources
 
-* [Tensorflow Tutorials](https://www.tensorflow.org/versions/0.6.0/tutorials/index.html)
-* [Tensorflow API](https://www.tensorflow.org/versions/0.6.0/api_docs/python/index.html)
-* [Tensorflow Google Groups](groups.google.com/a/tensorflow.org/d/forum/discuss)
+* [Tensorflow Tutorials](https://www.tensorflow.org/versions/v0.6.0/tutorials/index.html)
+* [Tensorflow API](https://www.tensorflow.org/versions/v0.6.0/api_docs/python/index.html)
+* [Tensorflow Google Groups](https://groups.google.com/a/tensorflow.org/forum/#!forum/discuss)
 
 # Author
 
