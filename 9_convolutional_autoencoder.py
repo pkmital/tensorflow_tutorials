@@ -101,7 +101,7 @@ def autoencoder(input_shape=[None, 784],
         W = encoder[layer_i]
         b = tf.Variable(tf.zeros([W.get_shape().as_list()[2]]))
         output = lrelu(tf.add(
-            tf.nn.deconv2d(
+            tf.nn.conv2d_transpose(
                 current_input, W,
                 tf.pack([tf.shape(x)[0], shape[1], shape[2], shape[3]]),
                 strides=[1, 2, 2, 1], padding='SAME'), b))

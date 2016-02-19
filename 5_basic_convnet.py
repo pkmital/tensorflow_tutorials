@@ -22,7 +22,7 @@ y = tf.placeholder(tf.float32, [None, 10])
 x_tensor = tf.reshape(x, [-1, 28, 28, 1])
 
 # %% We'll setup the first convolutional layer
-# Weight matrix is [width x height x input_channels x output_channels]
+# Weight matrix is [height x width x input_channels x output_channels]
 filter_size = 5
 n_filters_1 = 16
 W_conv1 = weight_variable([filter_size, filter_size, 1, n_filters_1])

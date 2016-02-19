@@ -6,6 +6,37 @@ import tensorflow as tf
 import numpy as np
 
 
+def montage_batch(images):
+    """Draws all filters (n_input * n_output filters) as a
+    montage image separated by 1 pixel borders.
+
+    Parameters
+    ----------
+    batch : Tensor
+        Input tensor to create montage of.
+
+    Returns
+    -------
+    m : numpy.ndarray
+        Montage image.
+    """
+    img_h = images.shape[1]
+    img_w = images.shape[2]
+    n_plots = int(np.ceil(np.sqrt(images.shape[0])))
+    m = np.ones(
+        (images.shape[1] * n_plots + n_plots + 1,
+         images.shape[2] * n_plots + n_plots + 1, 3)) * 0.5
+
+    for i in range(n_plots):
+        for j in range(n_plots):
+            this_filter = i * n_plots + j
+            if this_filter < images.shape[0]:
+                this_img = images[this_filter, ...]
+                m[1 + i + i * img_h:1 + i + (i + 1) * img_h,
+                  1 + j + j * img_w:1 + j + (j + 1) * img_w, :] = this_img
+    return m
+
+
 # %%
 def montage(W):
     """Draws all filters (n_input * n_output filters) as a
@@ -34,6 +65,8 @@ def montage(W):
                   1 + j + j * W.shape[1]:1 + j + (j + 1) * W.shape[1]] = (
                     np.squeeze(W[:, :, :, this_filter]))
     return m
+
+
 
 
 # %%

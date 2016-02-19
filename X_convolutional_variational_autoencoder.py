@@ -4,19 +4,19 @@ Parag K. Mital, Jan 2016
 """
 import tensorflow as tf
 import numpy as np
-from utils import weight_variable, bias_variable, montage
+from utils import weight_variable, bias_variable, montage_batch
 from time import sleep
 import matplotlib.pyplot as plt
 
 
 # %%
 def VAE(input_shape=[None, 784],
-        n_filters=[784, 512],
-        filter_sizes=[],
-        n_hidden=256,
+        n_filters=[1, 64, 128, 128],
+        filter_sizes=[3, 3, 3, 3],
+        n_hidden=512,
         n_code=2,
         activation=tf.nn.relu,
-        convolutional=False,
+        convolutional=True,
         debug=False):
     # %%
     # Input placeholder
@@ -24,7 +24,7 @@ def VAE(input_shape=[None, 784],
         input_shape = [50, 784]
         x = tf.Variable(np.zeros((input_shape), dtype=np.float32))
     else:
-        x = tf.placeholder(tf.float32, input_shape)
+        x = tf.placeholder(tf.float32, input_shape, 'x')
 
     # %%
     # ensure 2-d is converted to square tensor.
@@ -50,7 +50,6 @@ def VAE(input_shape=[None, 784],
     # %%
     # Build the encoder
     shapes = []
-    encoder = []
     print('* Encoder')
     for layer_i, n_input in enumerate(n_filters[:-1]):
         n_output = n_filters[layer_i + 1]
@@ -61,7 +60,6 @@ def VAE(input_shape=[None, 784],
                 filter_sizes[layer_i],
                 filter_sizes[layer_i],
                 n_input, n_output])
-            encoder.append(W)
             b = bias_variable([n_output])
             output = activation(
                 tf.add(tf.nn.conv2d(
@@ -84,7 +82,7 @@ def VAE(input_shape=[None, 784],
         # Flatten and build latent layer as means and standard deviations
         size = (dims[1] * dims[2] * dims[3])
         flattened = tf.reshape(current_input, [dims[0], size]
-            if debug else tf.pack([tf.shape(x)[0], size]))
+                               if debug else tf.pack([tf.shape(current_input)[0], size]))
 
     else:
         size = dims[1]
@@ -158,11 +156,10 @@ def VAE(input_shape=[None, 784],
     if convolutional:
         h_tensor = tf.reshape(
             h_fc_dec, [dims[0], dims[1], dims[2], dims[3]] if debug
-            else tf.pack([tf.shape(x)[0], dims[1], dims[2], dims[3]]))
+            else tf.pack([tf.shape(h_dec)[0], dims[1], dims[2], dims[3]]))
     else:
         h_tensor = h_fc_dec
 
-    encoder.reverse()
     shapes.reverse()
     n_filters.reverse()
 
@@ -175,17 +172,20 @@ def VAE(input_shape=[None, 784],
     for layer_i, n_output in enumerate(n_filters[:-1][::-1]):
         n_input = n_filters[layer_i]
         n_output = n_filters[layer_i + 1]
-
-        print(n_input, n_output)
         shape = shapes[layer_i]
         if convolutional:
+            W = weight_variable([
+                filter_sizes[layer_i],
+                filter_sizes[layer_i],
+                n_output, n_input])
             b = bias_variable([n_output])
             output = activation(tf.add(
-                tf.nn.deconv2d(
-                    current_input, encoder[layer_i],
+                tf.nn.conv2d_transpose(
+                    current_input, W,
                     shape if debug else
                     tf.pack(
-                        [tf.shape(x)[0], shape[1], shape[2], shape[3]]),
+                        [tf.shape(current_input)[0], shape[1],
+                         shape[2], shape[3]]),
                     strides=[1, 2, 2, 1], padding='SAME'), b))
         else:
             W = weight_variable([n_input, n_output])
@@ -198,7 +198,7 @@ def VAE(input_shape=[None, 784],
         current_input = output
 
     dec_flat = tf.reshape(
-        current_input, tf.pack([tf.shape(x)[0], input_shape[1]]))
+        current_input, tf.pack([tf.shape(current_input)[0], input_shape[1]]))
 
     # %%
     # An extra fc layer and nonlinearity
@@ -218,7 +218,7 @@ def VAE(input_shape=[None, 784],
         1)
     loss = tf.reduce_mean(log_px_given_z + kl_div)
 
-    return {'cost': loss, 'x': x, 'z': z, 'y': y, 'filters': encoder}
+    return {'cost': loss, 'x': x, 'z': z, 'y': y}
 
 
 def plot_reconstructions(xs, ys, fig=None, axs=None):
@@ -271,9 +271,16 @@ def test_mnist():
 
     # %%
     # Fit all training data
+    t_i = 0
     batch_size = 100
     n_epochs = 10
-    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+    n_examples = 20
+    test_xs, _ = mnist.test.next_batch(n_examples)
+    xs, ys = mnist.test.images, mnist.test.labels
+    fig_manifold, ax_manifold = plt.subplots(1, 1)
+    fig_reconstruction, axs_reconstruction = plt.subplots(
+        2, n_examples, figsize=(10, 2))
+    fig_image_manifold, ax_image_manifold = plt.subplots(1, 1)
     for epoch_i in range(n_epochs):
         print('--- Epoch', epoch_i)
         train_cost = 0
@@ -282,17 +289,50 @@ def test_mnist():
             train_cost += sess.run([ae['cost'], optimizer],
                                    feed_dict={ae['x']: batch_xs})[0]
 
-            if batch_i % 5 == 0:
-                xs, ys = mnist.test.images, mnist.test.labels
-                zs = sess.run(ae['z'], feed_dict={ae['x']: xs})
-                plt.cla()
-                ax.scatter(zs[:, 0], zs[:, 1], c=np.argmax(ys, 1), alpha=0.5)
-                ax.set_xlim([-3, 3])
-                ax.set_ylim([-3, 3])
-                fig.show()
-                fig.canvas.draw()
-                fig.canvas.flush_events()
+            if batch_i % 2 == 0:
+                # %%
+                # Plot example reconstructions from latent layer
+                imgs = []
+                for img_i in np.linspace(-3, 3, n_examples):
+                    for img_j in np.linspace(-3, 3, n_examples):
+                        z = np.array([[img_i, img_j]], dtype=np.float32)
+                        recon = sess.run(ae['y'], feed_dict={ae['z']: z})
+                        imgs.append(np.reshape(recon, (1, 28, 28, 1)))
+                imgs_cat = np.concatenate(imgs)
+                ax_manifold.imshow(montage_batch(imgs_cat))
+                fig_manifold.savefig('manifold_%08d.png' % t_i)
 
+                # %%
+                # Plot example reconstructions
+                recon = sess.run(ae['y'], feed_dict={ae['x']: test_xs})
+                print(recon.shape)
+                for example_i in range(n_examples):
+                    axs_reconstruction[0][example_i].clear()
+                    axs_reconstruction[0][example_i].imshow(
+                        np.reshape(test_xs[example_i, :], (28, 28)),
+                        cmap='gray')
+                    axs_reconstruction[1][example_i].clear()
+                    axs_reconstruction[1][example_i].imshow(
+                        np.reshape(
+                            np.reshape(recon[example_i, ...], (784,)),
+                            (28, 28)),
+                        cmap='gray')
+                    axs_reconstruction[0][example_i].axis('off')
+                    axs_reconstruction[1][example_i].axis('off')
+                fig_reconstruction.savefig('reconstruction_%08d.png' % t_i)
+
+                # %%
+                # Plot manifold of latent layer
+                zs = sess.run(ae['z'], feed_dict={ae['x']: xs})
+                ax_image_manifold.clear()
+                ax_image_manifold.scatter(zs[:, 0], zs[:, 1],
+                                          c=np.argmax(ys, 1), alpha=0.2)
+                ax_image_manifold.set_xlim([-6, 6])
+                ax_image_manifold.set_ylim([-6, 6])
+                ax_image_manifold.axis('off')
+                fig_image_manifold.savefig('image_manifold_%08d.png' % t_i)
+
+                t_i += 1
         print('Train cost:', train_cost /
               (mnist.train.num_examples // batch_size))
 
@@ -304,7 +344,6 @@ def test_mnist():
         print('Validation cost:', valid_cost /
               (mnist.validation.num_examples // batch_size))
 
-    
 
 if __name__ == '__main__':
     test_mnist()
