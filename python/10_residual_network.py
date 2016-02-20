@@ -4,7 +4,7 @@ Parag K. Mital, Jan 2016.
 """
 # %%
 import tensorflow as tf
-from connections import conv2d, linear
+from libs.connections import conv2d, linear
 from collections import namedtuple
 from math import sqrt
 

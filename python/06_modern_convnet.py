@@ -5,10 +5,10 @@ Parag K. Mital, Jan 2016.
 """
 # %%
 import tensorflow as tf
-from batch_norm import batch_norm
-from activations import lrelu
-from connections import conv2d, linear
-from datasets import MNIST
+from libs.batch_norm import batch_norm
+from libs.activations import lrelu
+from libs.connections import conv2d, linear
+from libs.datasets import MNIST
 
 
 # %% Setup input to the network and true output label.  These are

@@ -5,7 +5,7 @@ Parag K. Mital, Jan 2016
 import tensorflow as tf
 import numpy as np
 import math
-from utils import corrupt
+from libs.utils import corrupt
 
 
 # %%

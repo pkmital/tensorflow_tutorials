@@ -5,8 +5,8 @@ Parag K. Mital, Jan 2016
 import tensorflow as tf
 import numpy as np
 import math
-from activations import lrelu
-from utils import corrupt
+from libs.activations import lrelu
+from libs.utils import corrupt
 
 
 # %%

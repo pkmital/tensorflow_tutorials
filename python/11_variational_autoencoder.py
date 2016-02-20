@@ -5,27 +5,7 @@ Parag K. Mital, Jan 2016
 """
 import tensorflow as tf
 import numpy as np
-from utils import weight_variable, bias_variable, montage_batch
-
-
-def lrelu(X, leakage=0.1):
-    """Summary
-
-    Parameters
-    ----------
-    X : TYPE
-        Description
-    leakage : float, optional
-        Description
-
-    Returns
-    -------
-    name : TYPE
-        Description
-    """
-    f1 = 0.5 * (1 + leakage)
-    f2 = 0.5 * (1 - leakage)
-    return f1 * X + f2 * tf.abs(X)
+from libs.utils import weight_variable, bias_variable, montage_batch
 
 
 # %%
