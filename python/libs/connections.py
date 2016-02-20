@@ -3,7 +3,7 @@ Parag K. Mital, Jan 2016.
 """
 
 import tensorflow as tf
-from batch_norm import batch_norm as bn
+from .batch_norm import batch_norm as bn
 
 
 def conv2d(x, n_filters,
