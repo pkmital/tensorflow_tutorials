@@ -1,88 +1,63 @@
 """Batch Normalization for TensorFlow.
-Parag K. Mital, Jan 2016."""
+Parag K. Mital, Jan 2016.
+"""
 
 import tensorflow as tf
+from tensorflow.python import control_flow_ops
 
 
-class batch_norm(object):
-    """Basic usage from: http://stackoverflow.com/a/33950177
-
-    Parag K. Mital, Jan 2016
-
-    Attributes
-    ----------
-    batch_size : int
-        Size of the batch.  Set to -1 to fit to current net.
-    beta : Tensor
-        A 1D beta Tensor with size matching the last dimension of t.
-        An offset to be added to the normalized tensor.
-    ema : tf.train.ExponentialMovingAverage
-        For computing the moving average.
-    epsilon : float
-        A small float number to avoid dividing by 0.
-    gamma : Tensor
-        If "scale_after_normalization" is true, this tensor will be multiplied
-        with the normalized tensor.
-    momentum : float
-        The decay to use for the moving average.
-    name : str
-        The variable scope for all variables under batch normalization.
+def batch_norm(x, phase_train, scope='bn', affine=True):
     """
+    Batch normalization on convolutional maps.
 
-    def __init__(self, batch_size, epsilon=1e-5,
-                 momentum=0.1, name="batch_norm"):
-        """Summary
+    from: https://stackoverflow.com/questions/33949786/how-could-i-
+    use-batch-normalization-in-tensorflow
 
-        Parameters
-        ----------
-        batch_size : int
-            Size of the batch, or -1 for size to fit.
-        epsilon : float, optional
-            A small float number to avoid dividing by 0.
-        momentum : float, optional
-            Decay to use for the moving average.
-        name : str, optional
-            Variable scope will be under this prefix.
-        """
-        with tf.variable_scope(name) as scope:
-            self.epsilon = epsilon
-            self.momentum = momentum
-            self.batch_size = batch_size
-            self.ema = tf.train.ExponentialMovingAverage(decay=self.momentum)
-            self.name = name
+    Only modified to infer shape from input tensor x.
 
-    def __call__(self, x, train=True):
-        """Applies/updates the BN to the input Tensor.
+    Parameters
+    ----------
+    x
+        Tensor, 4D BHWD input maps
+    phase_train
+        boolean tf.Variable, true indicates training phase
+    scope
+        string, variable scope
+    affine
+        whether to affine-transform outputs
 
-        Parameters
-        ----------
-        x : Tensor
-            The input tensor to normalize.
-        train : bool, optional
-            Whether or not to train parameters.
-
-        Returns
-        -------
-        x_normed : Tensor
-            The normalized Tensor.
-        """
+    Return
+    ------
+    normed
+        batch-normalized maps
+    """
+    with tf.variable_scope(scope):
         shape = x.get_shape().as_list()
 
-        # Using a variable scope means any new variables
-        # will be prefixed with "variable_scope/", e.g.:
-        # "variable_scope/new_variable".  Also, using
-        # TensorBoard, this will make everything very
-        # nicely grouped.
-        with tf.variable_scope(self.name) as scope:
-            self.gamma = tf.get_variable(
-                "gamma", [shape[-1]],
-                initializer=tf.random_normal_initializer(1., 0.02))
-            self.beta = tf.get_variable(
-                "beta", [shape[-1]],
-                initializer=tf.constant_initializer(0.))
+        beta = tf.Variable(tf.constant(0.0, shape=[shape[-1]]),
+                           name='beta', trainable=True)
+        gamma = tf.Variable(tf.constant(1.0, shape=[shape[-1]]),
+                            name='gamma', trainable=affine)
 
-            mean, variance = tf.nn.moments(x, [0, 1, 2])
+        batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], name='moments')
+        ema = tf.train.ExponentialMovingAverage(decay=0.9)
+        ema_apply_op = ema.apply([batch_mean, batch_var])
+        ema_mean, ema_var = ema.average(batch_mean), ema.average(batch_var)
 
-            return tf.nn.batch_norm_with_global_normalization(
-                x, mean, variance, self.beta, self.gamma, self.epsilon,
-                scale_after_normalization=True)
+        def mean_var_with_update():
+            """Summary
+
+            Returns
+            -------
+            name : TYPE
+                Description
+            """
+            with tf.control_dependencies([ema_apply_op]):
+                return tf.identity(batch_mean), tf.identity(batch_var)
+        mean, var = control_flow_ops.cond(phase_train,
+                                          mean_var_with_update,
+                                          lambda: (ema_mean, ema_var))
+
+        normed = tf.nn.batch_norm_with_global_normalization(
+            x, mean, var, beta, gamma, 1e-3, affine)
+    return normed

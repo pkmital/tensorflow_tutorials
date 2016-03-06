@@ -16,15 +16,27 @@ from libs.datasets import MNIST
 mnist = MNIST()
 x = tf.placeholder(tf.float32, [None, 784])
 y = tf.placeholder(tf.float32, [None, 10])
+
+# %% We add a new type of placeholder to denote when we are training.
+# This will be used to change the way we compute the network during
+# training/testing.
+is_training = tf.placeholder(tf.bool, name='is_training')
+
+# %% We'll convert our MNIST vector data to a 4-D tensor:
+# N x W x H x C
 x_tensor = tf.reshape(x, [-1, 28, 28, 1])
 
-# %% Define the network:
-bn1 = batch_norm(-1, name='bn1')
-bn2 = batch_norm(-1, name='bn2')
-bn3 = batch_norm(-1, name='bn3')
-h_1 = lrelu(bn1(conv2d(x_tensor, 32, name='conv1')), name='lrelu1')
-h_2 = lrelu(bn2(conv2d(h_1, 64, name='conv2')), name='lrelu2')
-h_3 = lrelu(bn3(conv2d(h_2, 64, name='conv3')), name='lrelu3')
+# %% We'll use a new method called  batch normalization.
+# This process attempts to "reduce internal covariate shift"
+# which is a fancy way of saying that it will normalize updates for each
+# batch using a smoothed version of the batch mean and variance
+# The original paper proposes using this before any nonlinearities
+h_1 = lrelu(batch_norm(conv2d(x_tensor, 32, name='conv1'),
+                       is_training, scope='bn1'), name='lrelu1')
+h_2 = lrelu(batch_norm(conv2d(h_1, 64, name='conv2'),
+                       is_training, scope='bn2'), name='lrelu2')
+h_3 = lrelu(batch_norm(conv2d(h_2, 64, name='conv3'),
+                       is_training, scope='bn3'), name='lrelu3')
 h_3_flat = tf.reshape(h_3, [-1, 64 * 4 * 4])
 h_4 = linear(h_3_flat, 10)
 y_pred = tf.nn.softmax(h_4)
@@ -48,9 +60,10 @@ for epoch_i in range(n_epochs):
     for batch_i in range(mnist.train.num_examples // batch_size):
         batch_xs, batch_ys = mnist.train.next_batch(batch_size)
         sess.run(train_step, feed_dict={
-            x: batch_xs, y: batch_ys})
+            x: batch_xs, y: batch_ys, is_training: True})
     print(sess.run(accuracy,
                    feed_dict={
                        x: mnist.validation.images,
-                       y: mnist.validation.labels
+                       y: mnist.validation.labels,
+                       is_training: False
                    }))
