@@ -51,24 +51,20 @@ class DatasetSplit(object):
     def next_batch(self, batch_size=100):
         # Shuffle each epoch
         current_permutation = np.random.permutation(range(len(self.images)))
-        epoch_images = np.array([self.images[idx]
-                                 for idx in current_permutation])
+        epoch_images = self.images[current_permutation, ...]
         epoch_labels = dense_to_one_hot(
-            np.array([self.labels[idx] for idx in current_permutation]),
-            self.n_labels)
+            self.labels[current_permutation, ...], self.n_labels)
 
         # Then iterate over the epoch
         self.current_batch_idx = 0
-        self.current_obs_idx = 0
-        while self.current_obs_idx < len(self.images):
+        while self.current_batch_idx < len(self.images):
             end_idx = min(
                 self.current_batch_idx + batch_size, len(self.images))
             this_batch = {
                 'images': epoch_images[self.current_batch_idx:end_idx],
                 'labels': epoch_labels[self.current_batch_idx:end_idx]
             }
-            self.current_batch_idx += 1
-            self.current_obs_idx += batch_size
+            self.current_batch_idx += batch_size
             yield this_batch['images'], this_batch['labels']
 
 
@@ -90,8 +86,8 @@ class Dataset(object):
         n_idxs = len(self.all_inputs)
         idxs = range(n_idxs)
         rand_idxs = np.random.permutation(idxs)
-        self.all_inputs = self.all_inputs[rand_idxs]
-        self.all_labels = self.all_labels[rand_idxs]
+        self.all_inputs = self.all_inputs[rand_idxs, ...]
+        self.all_labels = self.all_labels[rand_idxs, ...]
 
         # Get splits
         self.train_idxs = idxs[:round(split[0] * n_idxs)]
@@ -102,20 +98,20 @@ class Dataset(object):
 
     @property
     def train(self):
-        inputs = self.all_inputs[self.train_idxs]
-        labels = self.all_labels[self.train_idxs]
+        inputs = self.all_inputs[self.train_idxs, ...]
+        labels = self.all_labels[self.train_idxs, ...]
         return DatasetSplit(inputs, labels)
 
     @property
     def valid(self):
-        inputs = self.all_inputs[self.valid_idxs]
-        labels = self.all_labels[self.valid_idxs]
+        inputs = self.all_inputs[self.valid_idxs, ...]
+        labels = self.all_labels[self.valid_idxs, ...]
         return DatasetSplit(inputs, labels)
 
     @property
     def test(self):
-        inputs = self.all_inputs[self.test_idxs]
-        labels = self.all_labels[self.test_idxs]
+        inputs = self.all_inputs[self.test_idxs, ...]
+        labels = self.all_labels[self.test_idxs, ...]
         return DatasetSplit(inputs, labels)
 
     def mean(self):
