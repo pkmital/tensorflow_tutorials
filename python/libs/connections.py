@@ -3,14 +3,12 @@ Parag K. Mital, Jan 2016.
 """
 
 import tensorflow as tf
-from .batch_norm import batch_norm as bn
 
 
 def conv2d(x, n_filters,
            k_h=5, k_w=5,
            stride_h=2, stride_w=2,
            stddev=0.02,
-           batch_norm=False,
            activation=lambda x: x,
            bias=True,
            padding='SAME',
@@ -35,8 +33,6 @@ def conv2d(x, n_filters,
         Initialization's standard deviation.
     activation : arguments, optional
         Function which applies a nonlinearity
-    batch_norm : bool, optional
-        Whether or not to apply batch normalization
     padding : str, optional
         'SAME' or 'VALID'
     name : str, optional
@@ -58,9 +54,6 @@ def conv2d(x, n_filters,
                 'b', [n_filters],
                 initializer=tf.truncated_normal_initializer(stddev=stddev))
             conv = conv + b
-        if batch_norm:
-            norm = bn(-1)
-            conv = norm(conv)
         return conv
 
 
