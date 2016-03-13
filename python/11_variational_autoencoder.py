@@ -1,4 +1,4 @@
-"""Training a variational autoencder with 2 layer fully-connected
+"""Training a variational autoencoder with 2 layer fully-connected
 encoder/decoders and gaussian noise distribution.
 
 Parag K. Mital, Jan 2016

@@ -5,6 +5,7 @@ Parag K. Mital, Jan. 2016"""
 import tensorflow as tf
 import tensorflow.examples.tutorials.mnist.input_data as input_data
 from libs.utils import *
+import matplotlib.pyplot as plt
 
 
 # %% Setup input to the network and true output label.  These are
