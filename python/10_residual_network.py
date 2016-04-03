@@ -72,7 +72,7 @@ def residual_network(x, n_outputs,
         for layer_i in range(block.num_layers):
 
             name = 'block_%d/layer_%d' % (block_i, layer_i)
-            conv = conv2d(net, block.num_filters, k_h=1, k_w=1,
+            conv = conv2d(net, block.bottleneck_size, k_h=1, k_w=1,
                           padding='VALID', stride_h=1, stride_w=1,
                           activation=activation, batch_norm=True,
                           name=name + '/conv_in')
