@@ -54,7 +54,7 @@ def conv2d(x, n_filters,
                 'b', [n_filters],
                 initializer=tf.truncated_normal_initializer(stddev=stddev))
             conv = conv + b
-        return conv
+        return activation(conv)
 
 
 def linear(x, n_units, scope=None, stddev=0.02,

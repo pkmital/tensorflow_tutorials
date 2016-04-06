@@ -53,7 +53,7 @@ def residual_network(x, n_outputs,
     # %%
     # First convolution expands to 64 channels and downsamples
     net = conv2d(x, 64, k_h=7, k_w=7,
-                 batch_norm=True, name='conv1',
+                 name='conv1',
                  activation=activation)
 
     # %%
@@ -74,17 +74,17 @@ def residual_network(x, n_outputs,
             name = 'block_%d/layer_%d' % (block_i, layer_i)
             conv = conv2d(net, block.bottleneck_size, k_h=1, k_w=1,
                           padding='VALID', stride_h=1, stride_w=1,
-                          activation=activation, batch_norm=True,
+                          activation=activation,
                           name=name + '/conv_in')
 
             conv = conv2d(conv, block.bottleneck_size, k_h=3, k_w=3,
                           padding='SAME', stride_h=1, stride_w=1,
-                          activation=activation, batch_norm=True,
+                          activation=activation,
                           name=name + '/conv_bottleneck')
 
             conv = conv2d(conv, block.num_filters, k_h=1, k_w=1,
                           padding='VALID', stride_h=1, stride_w=1,
-                          activation=activation, batch_norm=True,
+                          activation=activation,
                           name=name + '/conv_out')
 
             net = conv + net
