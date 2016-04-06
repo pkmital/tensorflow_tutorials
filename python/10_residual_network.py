@@ -36,7 +36,7 @@ def residual_network(x, n_outputs,
     """
     # %%
     LayerBlock = namedtuple(
-        'LayerBlock', ['num_layers', 'num_filters', 'bottleneck_size'])
+        'LayerBlock', ['num_repeats', 'num_filters', 'bottleneck_size'])
     blocks = [LayerBlock(3, 128, 32),
               LayerBlock(3, 256, 64),
               LayerBlock(3, 512, 128),
@@ -69,9 +69,9 @@ def residual_network(x, n_outputs,
     # %%
     # Loop through all res blocks
     for block_i, block in enumerate(blocks):
-        for layer_i in range(block.num_layers):
+        for repeat_i in range(block.num_repeats):
 
-            name = 'block_%d/layer_%d' % (block_i, layer_i)
+            name = 'block_%d/repeat_%d' % (block_i, repeat_i)
             conv = conv2d(net, block.bottleneck_size, k_h=1, k_w=1,
                           padding='VALID', stride_h=1, stride_w=1,
                           activation=activation,
