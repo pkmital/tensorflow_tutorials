@@ -1,44 +1,17 @@
 # TensorFlow Tutorials
 
-## 1-basics.py
-
-Basics of getting setup w/ tensorflow and graph computation.
-
-## 2-linear_regression.py
-
-Performing regression with a single factor and bias.
-
-## 3-polynomial_regression.py
-
-Performing regression using polynomial factors.
-
-## 4-logistic_regression.py
-
-Performing logistic regression using a single layer neural network.
-
-## 5-basic_convnet.py
-
-Building a deep convolutional neural network.
-
-## 6-modern_convnet.py
-
-Building a deep convolutional neural network w/ batch normalization and leaky rectifiers.
-
-## 7-autoencoder.py
-
-Building a deep autoencoder w/ tied weights.
-
-## 8-denoising_autoencoder.py
-
-Building a deep denoising autoencoder which corrupts the input.
-
-## 9-convolutional_autoencoder.py
-
-Building a deep convolutional autoencoder.
-
-## 10-residual_network.py
-
-Building a deep residual network.
+| | Source code | Description |
+| --- | --- | --- |
+|1| **[basics.py](python/01_basics.py)** | Setup with tensorflow and graph computation.|
+|2| **[linear_regression.py](python/02_linear_regression.py)** | Performing regression with a single factor and bias. |
+|3| **[polynomial_regression.py](python/03_polynomial_regression.py)** | Performing regression using polynomial factors.|
+|4| **[logistic_regression.py](python/04_logistic_regression.py)** | Performing logistic regression using a single layer neural network.|
+|5| **[basic_convnet.py](python/05_basic_convnet.py)** | Building a deep convolutional neural network.|
+|6| **[modern_convnet.py](python/06_modern_convnet.py)** | Building a deep convolutional neural network with batch normalization and leaky rectifiers.|
+|7| **[autoencoder.py](python/07_autoencoder.py)** | Building a deep autoencoder with tied weights.|
+|8| **[denoising_autoencoder.py](python/08_denoising_autoencoder.py)** | Building a deep denoising autoencoder which corrupts the input.|
+|9| **[convolutional_autoencoder.py](python/09_convolutional_autoencoder.py)** | Building a deep convolutional autoencoder.|
+|10| **[residual_network.py](python/10_residual_network.py)** | Building a deep residual network.|
 
 ## ... More to come ...
 
@@ -58,6 +31,7 @@ Building a deep residual network.
 # Author
 
 Parag K. Mital, Jan. 2016.
+
 http://pkmital.com
 
 # License
