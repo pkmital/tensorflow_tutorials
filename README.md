@@ -1,5 +1,7 @@
 # TensorFlow Tutorials
 
+You can find python source code under the `python` directory, and associated notebooks under `notebooks`.
+
 | | Source code | Description |
 | --- | --- | --- |
 |1| **[basics.py](python/01_basics.py)** | Setup with tensorflow and graph computation.|
@@ -12,14 +14,16 @@
 |8| **[denoising_autoencoder.py](python/08_denoising_autoencoder.py)** | Building a deep denoising autoencoder which corrupts the input.|
 |9| **[convolutional_autoencoder.py](python/09_convolutional_autoencoder.py)** | Building a deep convolutional autoencoder.|
 |10| **[residual_network.py](python/10_residual_network.py)** | Building a deep residual network.|
-
-## ... More to come ...
+|11| **[variational_autoencoder.py](python/11_variational_autoencoder.py)** | Building an autoencoder with a variational encoding.|
 
 # Installation Guides
 
 * [TensorFlow Installation](https://github.com/tensorflow/tensorflow)
 * [OS specific setup](https://github.com/tensorflow/tensorFlow/blob/master/tensorflow/g3doc/get_started/os_setup.md)
 * [Installation on EC2 GPU Instances](http://eatcodeplay.com/installing-gpu-enabled-tensorflow-with-python-3-4-in-ec2/)
+
+For Ubuntu users using python3.4+ w/ CUDA 7.5 and cuDNN 7.0, you can find compiled wheels under the `wheels` directory.  Use `pip3 install tensorflow-0.8.0rc0-py3-none-any.whl` to install, e.g. and be sure to add: `export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
+` to your `.bashrc`.  Note, this still requires you to install CUDA 7.5 and cuDNN 7.0 under `/usr/local/cuda`.
 
 # Resources
 
