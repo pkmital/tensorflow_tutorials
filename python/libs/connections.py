@@ -115,7 +115,7 @@ def conv2d(x, n_filters,
            k_h=5, k_w=5,
            stride_h=2, stride_w=2,
            stddev=0.02,
-           activation=lambda x: x,
+           activation=None,
            bias=True,
            padding='SAME',
            name="Conv2D"):
@@ -159,5 +159,7 @@ def conv2d(x, n_filters,
             b = tf.get_variable(
                 'b', [n_filters],
                 initializer=tf.truncated_normal_initializer(stddev=stddev))
-            conv = conv + b
+            conv = tf.nn.bias_add(conv, b)
+        if activation:
+            conv = activation(conv)
         return conv
