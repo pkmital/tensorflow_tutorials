@@ -46,27 +46,26 @@ def autoencoder(input_shape=[None, 784],
     x = tf.placeholder(
         tf.float32, input_shape, name='x')
 
-    # %%
-    # Optionally apply denoising autoencoder
-    if corruption:
-        x_noise = corrupt(x)
-    else:
-        x_noise = x
 
     # %%
     # ensure 2-d is converted to square tensor.
     if len(x.get_shape()) == 2:
-        x_dim = np.sqrt(x_noise.get_shape().as_list()[1])
+        x_dim = np.sqrt(x.get_shape().as_list()[1])
         if x_dim != int(x_dim):
             raise ValueError('Unsupported input dimensions')
         x_dim = int(x_dim)
         x_tensor = tf.reshape(
-            x_noise, [-1, x_dim, x_dim, n_filters[0]])
-    elif len(x_noise.get_shape()) == 4:
-        x_tensor = x_noise
+            x, [-1, x_dim, x_dim, n_filters[0]])
+    elif len(x.get_shape()) == 4:
+        x_tensor = x
     else:
         raise ValueError('Unsupported input dimensions')
     current_input = x_tensor
+
+    # %%
+    # Optionally apply denoising autoencoder
+    if corruption:
+        current_input = corrupt(current_input)
 
     # %%
     # Build the encoder
