@@ -74,7 +74,7 @@ def VAE(input_shape=[None, 784],
 
     W_mu_dec = weight_variable([n_components_decoder, n_features])
     b_mu_dec = bias_variable([n_features])
-    y = tf.nn.tanh(tf.matmul(h_dec3, W_mu_dec) + b_mu_dec)
+    y = tf.nn.sigmoid(tf.matmul(h_dec3, W_mu_dec) + b_mu_dec)
 
     # p(x|z)
     log_px_given_z = -tf.reduce_sum(
