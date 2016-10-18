@@ -3,7 +3,6 @@ from Parag K. Mital.
 """
 import math
 import tensorflow as tf
-from tensorflow.python import control_flow_ops
 
 
 def batch_norm(x, phase_train, scope='bn', affine=True):
@@ -51,7 +50,7 @@ def batch_norm(x, phase_train, scope='bn', affine=True):
             """
             with tf.control_dependencies([ema_apply_op]):
                 return tf.identity(batch_mean), tf.identity(batch_var)
-        mean, var = control_flow_ops.cond(phase_train,
+        mean, var = tf.cond(phase_train,
                                           mean_var_with_update,
                                           lambda: (ema_mean, ema_var))
 
