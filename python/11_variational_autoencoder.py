@@ -55,7 +55,7 @@ def VAE(input_shape=[None, 784],
             [dims[0], n_hidden])
     else:
         epsilon = tf.random_normal(
-            tf.pack([tf.shape(x)[0], n_hidden]))
+            tf.stack([tf.shape(x)[0], n_hidden]))
 
     # Sample from posterior
     z = z_mu + tf.exp(z_log_sigma) * epsilon
@@ -117,7 +117,7 @@ def test_mnist():
     # %%
     # We create a session to use the graph
     sess = tf.Session()
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     # %%
     # Fit all training data

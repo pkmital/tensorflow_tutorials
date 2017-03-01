@@ -102,7 +102,7 @@ def autoencoder(input_shape=[None, 784],
         output = lrelu(tf.add(
             tf.nn.conv2d_transpose(
                 current_input, W,
-                tf.pack([tf.shape(x)[0], shape[1], shape[2], shape[3]]),
+                tf.stack([tf.shape(x)[0], shape[1], shape[2], shape[3]]),
                 strides=[1, 2, 2, 1], padding='SAME'), b))
         current_input = output
 
@@ -137,7 +137,7 @@ def test_mnist():
     # %%
     # We create a session to use the graph
     sess = tf.Session()
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     # %%
     # Fit all training data

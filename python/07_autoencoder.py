@@ -84,7 +84,7 @@ def test_mnist():
     # %%
     # We create a session to use the graph
     sess = tf.Session()
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     # %%
     # Fit all training data

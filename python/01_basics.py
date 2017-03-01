@@ -36,7 +36,7 @@ x.eval()
 # We'll use our values from [-3, 3] to create a Gaussian Distribution
 sigma = 1.0
 mean = 0.0
-z = (tf.exp(tf.neg(tf.pow(x - mean, 2.0) /
+z = (tf.exp(tf.negative(tf.pow(x - mean, 2.0) /
                    (2.0 * tf.pow(sigma, 2.0)))) *
      (1.0 / (sigma * tf.sqrt(2.0 * 3.1415))))
 
@@ -60,7 +60,7 @@ print(z.get_shape().as_list())
 print(tf.shape(z).eval())
 
 # %% We can combine tensors like so:
-print(tf.pack([tf.shape(z), tf.shape(z), [3], [4]]).eval())
+print(tf.stack([tf.shape(z), tf.shape(z), [3], [4]]).eval())
 
 # %% Let's multiply the two to get a 2d gaussian
 z_2d = tf.matmul(tf.reshape(z, [n_values, 1]), tf.reshape(z, [1, n_values]))
@@ -71,7 +71,7 @@ plt.imshow(z_2d.eval())
 # %% For fun let's create a gabor patch:
 x = tf.reshape(tf.sin(tf.linspace(-3.0, 3.0, n_values)), [n_values, 1])
 y = tf.reshape(tf.ones_like(x), [1, n_values])
-z = tf.mul(tf.matmul(x, y), z_2d)
+z = tf.multiply(tf.matmul(x, y), z_2d)
 plt.imshow(z.eval())
 
 # %% We can also list all the operations of a graph:
@@ -81,14 +81,14 @@ print([op.name for op in ops])
 # %% Lets try creating a generic function for computing the same thing:
 def gabor(n_values=32, sigma=1.0, mean=0.0):
     x = tf.linspace(-3.0, 3.0, n_values)
-    z = (tf.exp(tf.neg(tf.pow(x - mean, 2.0) /
+    z = (tf.exp(tf.negative(tf.pow(x - mean, 2.0) /
                        (2.0 * tf.pow(sigma, 2.0)))) *
          (1.0 / (sigma * tf.sqrt(2.0 * 3.1415))))
     gauss_kernel = tf.matmul(
         tf.reshape(z, [n_values, 1]), tf.reshape(z, [1, n_values]))
     x = tf.reshape(tf.sin(tf.linspace(-3.0, 3.0, n_values)), [n_values, 1])
     y = tf.reshape(tf.ones_like(x), [1, n_values])
-    gabor_kernel = tf.mul(tf.matmul(x, y), gauss_kernel)
+    gabor_kernel = tf.multiply(tf.matmul(x, y), gauss_kernel)
     return gabor_kernel
 
 # %% Confirm this does something:
@@ -112,7 +112,7 @@ def convolve(img, W):
         img = tf.reshape(img, dims)
         # if the image is 3 channels, then our convolution
         # kernel needs to be repeated for each input channel
-        W = tf.concat(2, [W, W, W])
+        W = tf.concat(axis=2, values=[W, W, W])
 
     # Stride is how many values to skip for the dimensions of
     # num, height, width, channels
