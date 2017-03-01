@@ -36,7 +36,7 @@ x.eval()
 # We'll use our values from [-3, 3] to create a Gaussian Distribution
 sigma = 1.0
 mean = 0.0
-z = (tf.exp(tf.neg(tf.pow(x - mean, 2.0) /
+z = (tf.exp(tf.negative(tf.pow(x - mean, 2.0) /
                    (2.0 * tf.pow(sigma, 2.0)))) *
      (1.0 / (sigma * tf.sqrt(2.0 * 3.1415))))
 
