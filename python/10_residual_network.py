@@ -134,7 +134,7 @@ def test_mnist():
     # %% We now create a new session to actually perform the initialization the
     # variables:
     sess = tf.Session()
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     # %% We'll train in minibatches and report accuracy:
     batch_size = 50

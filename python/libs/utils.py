@@ -83,7 +83,7 @@ def corrupt(x):
     x_corrupted : Tensor
         50 pct of values corrupted.
     """
-    return tf.mul(x, tf.cast(tf.random_uniform(shape=tf.shape(x),
+    return tf.multiply(x, tf.cast(tf.random_uniform(shape=tf.shape(x),
                                                minval=0,
                                                maxval=2,
                                                dtype=tf.int32), tf.float32))

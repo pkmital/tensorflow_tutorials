@@ -28,7 +28,7 @@ Y = tf.placeholder(tf.float32)
 Y_pred = tf.Variable(tf.random_normal([1]), name='bias')
 for pow_i in range(1, 5):
     W = tf.Variable(tf.random_normal([1]), name='weight_%d' % pow_i)
-    Y_pred = tf.add(tf.mul(tf.pow(X, pow_i), W), Y_pred)
+    Y_pred = tf.add(tf.multiply(tf.pow(X, pow_i), W), Y_pred)
 
 # %% Loss function will measure the distance between our observations
 # and predictions and average over them.
@@ -50,7 +50,7 @@ n_epochs = 1000
 with tf.Session() as sess:
     # Here we tell tensorflow that we want to initialize all
     # the variables in the graph so we can use them
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
 
     # Fit all training data
     prev_training_cost = 0.0

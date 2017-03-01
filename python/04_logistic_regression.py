@@ -75,7 +75,7 @@ optimizer = tf.train.GradientDescentOptimizer(
 # %% We now create a new session to actually perform the initialization the
 # variables:
 sess = tf.Session()
-sess.run(tf.initialize_all_variables())
+sess.run(tf.global_variables_initializer())
 
 # %% Now actually do some training:
 batch_size = 100
