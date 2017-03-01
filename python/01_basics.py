@@ -60,7 +60,7 @@ print(z.get_shape().as_list())
 print(tf.shape(z).eval())
 
 # %% We can combine tensors like so:
-print(tf.pack([tf.shape(z), tf.shape(z), [3], [4]]).eval())
+print(tf.stack([tf.shape(z), tf.shape(z), [3], [4]]).eval())
 
 # %% Let's multiply the two to get a 2d gaussian
 z_2d = tf.matmul(tf.reshape(z, [n_values, 1]), tf.reshape(z, [1, n_values]))
