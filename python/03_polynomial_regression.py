@@ -38,7 +38,7 @@ cost = tf.reduce_sum(tf.pow(Y_pred - Y, 2)) / (n_observations - 1)
 # e.g. ridge regression has a parameter controlling the amount of shrinkage
 # over the norm of activations. the larger the shrinkage, the more robust
 # to collinearity.
-# cost = tf.add(cost, tf.mul(1e-6, tf.global_norm([W])))
+# cost = tf.add(cost, tf.multiply(1e-6, tf.global_norm([W])))
 
 # %% Use gradient descent to optimize W,b
 # Performs a single step in the negative gradient
