@@ -19,6 +19,7 @@ You can find python source code under the `python` directory, and associated not
 |9| **[convolutional_autoencoder.py](python/09_convolutional_autoencoder.py)** | Building a deep convolutional autoencoder.|
 |10| **[residual_network.py](python/10_residual_network.py)** | Building a deep residual network.|
 |11| **[variational_autoencoder.py](python/11_variational_autoencoder.py)** | Building an autoencoder with a variational encoding.|
+|12| **[Gated Recurrent Units.py](python/12_Gated_Recurrent_Units.py)** | Building a Bidirectional Gated Recurrent Unit model for Fake News Classification.|
 
 # Installation Guides
 
