@@ -1,7 +1,3 @@
-# UPDATE (July 12, 2016)
-
-New **free MOOC course** covering all of this material in much more depth, as well as much more including combined variational autoencoders + generative adversarial networks, visualizing gradients, deep dream, style net, and recurrent networks: **https://www.kadenze.com/courses/creative-applications-of-deep-learning-with-tensorflow-i/info**
-
 # TensorFlow Tutorials
 
 You can find python source code under the `python` directory, and associated notebooks under `notebooks`.
